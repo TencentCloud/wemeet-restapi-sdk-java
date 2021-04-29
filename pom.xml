@@ -11,6 +11,11 @@
     <name>wemeet-restapi-sdk-java</name>
     <url>https://meeting.tencent.com/</url>
     <description>Tencent Wemeet Open API SDK for Java</description>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--先屏蔽javadoc的严谨告警，后续在优化 -->
+        <additionalparam>-Xdoclint:none</additionalparam>
+    </properties>
 
 
     <dependencies>
@@ -110,6 +115,7 @@
                 </executions>
                 <configuration>
                     <encoding>UTF-8</encoding>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
             <plugin>
