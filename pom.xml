@@ -9,7 +9,7 @@
     <version>1.1.0</version>
     <packaging>jar</packaging>
     <name>wemeet-restapi-sdk-java</name>
-    <url>https://cloud.tencent.com/document/product/1095/42407</url>
+    <url>https://meeting.tencent.com/</url>
     <description>Tencent Wemeet Open API SDK for Java</description>
 
 
