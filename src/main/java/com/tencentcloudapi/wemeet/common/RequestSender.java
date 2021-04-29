@@ -5,16 +5,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.okhttp.*;
+import com.tencentcloudapi.wemeet.common.constants.ReqHeaderConstants;
 import com.tencentcloudapi.wemeet.common.exception.WemeetSdkException;
 import com.tencentcloudapi.wemeet.common.http.HttpConnection;
 import com.tencentcloudapi.wemeet.common.interceptor.TerminalLog;
 import com.tencentcloudapi.wemeet.common.profile.HttpProfile;
+import com.tencentcloudapi.wemeet.models.AbstractModel;
 import com.tencentcloudapi.wemeet.models.BaseResponse;
 import com.tencentcloudapi.wemeet.util.SignUtil;
 
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.util.Map;
 
 /**
  * <p>http request sender</p>
@@ -48,7 +49,7 @@ public class RequestSender {
          * @param profile http配置信息
          * @throws WemeetSdkException 签名异常
          */
-        void addSignHeader(TerminalData data, HttpProfile profile) throws WemeetSdkException;
+        void addSignHeader(AbstractModel data, HttpProfile profile) throws WemeetSdkException;
     }
 
     public static class DefaultSign implements Sign {
@@ -59,34 +60,30 @@ public class RequestSender {
         }
 
         @Override
-        public void addSignHeader(TerminalData data, HttpProfile profile) throws WemeetSdkException {
+        public void addSignHeader(AbstractModel data, HttpProfile profile) throws WemeetSdkException {
             String nonce = String.valueOf(Math.abs(new SecureRandom().nextInt()));
             String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
-            data.addHeader("X-TC-Nonce", nonce);
-            data.addHeader("X-TC-Timestamp", timestamp);
-            data.addHeader("X-TC-Key", profile.getSecretId());
-            StringBuilder url = new StringBuilder(data.getUri());
-            if (data.getParams() != null && data.getParams().size() > 0) {
-                url.append("?");
-                Map<String, String> params = data.getParams();
-                for (Map.Entry<String, String> entry : params.entrySet()) {
-                    url.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
-                }
-                url.deleteCharAt(url.lastIndexOf("&"));
+            data.addHeader(ReqHeaderConstants.NONCE, nonce);
+            data.addHeader(ReqHeaderConstants.TIMESTAMP, timestamp);
+            data.addHeader(ReqHeaderConstants.REGISTERED, "1");
+            if (data.getHeaders() != null && data.getHeaders().containsKey(ReqHeaderConstants.ACCESS_TOKEN)
+                    && data.getHeaders().containsKey(ReqHeaderConstants.OPEN_ID)) {
+                // OAuth2.0鉴权
+                return;
             }
-            if (url.charAt(0) != '/') {
-                url.insert(0, '/');
+
+            data.addHeader(ReqHeaderConstants.KEY, profile.getSecretId());
+            data.addHeader(ReqHeaderConstants.APP_ID, profile.getAppId());
+            if (profile.getSdkId() != null) {
+                data.addHeader(ReqHeaderConstants.SDK_ID, profile.getSdkId());
             }
-            data.setUri(url.toString());
-            String tobeSign = data.getMethod() + "\nX-TC-Key=" + profile.getSecretId() + "&X-TC-Nonce="
-                    + nonce + "&X-TC-Timestamp=" + timestamp + "\n"
-                    + data.getUri() + "\n";
+            String signFormat = "%s\nX-TC-Key=%s&X-TC-Nonce=%s&X-TC-Timestamp=%s\n%s\n";
+            String tobeSign = String.format(signFormat, data.getMethod(), profile.getSecretId(), nonce, timestamp,
+                    data.getUri());
             if (data.getBody() != null) {
-                String jsonBody = data.getBody() instanceof String ? (String) data.getBody() : gson.toJson(data.getBody());
-                data.setBody(jsonBody);
-                tobeSign += jsonBody;
+                tobeSign += data.getBody();
             }
-            data.addHeader("X-TC-Signature", SignUtil.getSign(tobeSign, profile.getSecretKey()));
+            data.addHeader(ReqHeaderConstants.SIGNATURE, SignUtil.getSign(tobeSign, profile.getSecretKey()));
         }
     }
 
@@ -107,24 +104,15 @@ public class RequestSender {
      * @return O
      * @throws WemeetSdkException 请求异常
      */
-    public <O extends BaseResponse> O request(TerminalData data, TypeToken<O> typeToken) throws WemeetSdkException {
-        return internalRequest(data, null, typeToken);
+    public <O extends BaseResponse> O request(AbstractModel data, TypeToken<O> typeToken) throws WemeetSdkException {
+        return internalRequest(data, typeToken);
     }
+
 
     /**
-     * 发起请求
-     *
-     * @param data        封装请求数据
-     * @param contentType 请求content-type
-     * @param <O>         返回对象
-     * @return O
-     * @throws WemeetSdkException 请求异常
+     * 发起调用
      */
-    public <O extends BaseResponse> O request(TerminalData data, TypeToken<O> typeToken, MediaType contentType) throws WemeetSdkException {
-        return internalRequest(data, contentType, typeToken);
-    }
-
-    protected <O extends BaseResponse> O internalRequest(TerminalData data, MediaType contentType, TypeToken<O> typeToken) throws WemeetSdkException {
+    protected <O extends BaseResponse> O internalRequest(AbstractModel data, TypeToken<O> typeToken) throws WemeetSdkException {
         Request request;
         try {
             Request.Builder builder = new Request.Builder();
@@ -136,17 +124,11 @@ public class RequestSender {
             builder.url(profile.getHost() + data.getUri());
 
             RequestBody requestBody = null;
-            Object body = data.getBody();
+            String body = data.getBody();
             if (body != null) {
-                String jsonBody;
-                if (body instanceof String) {
-                    jsonBody = (String) body;
-                } else {
-                    jsonBody = gson.toJson(body);
-                }
-                requestBody = RequestBody.create(contentType, jsonBody);
+                requestBody = RequestBody.create(data.contentType(), body);
             }
-            builder.method(data.getMethod(), requestBody);
+            builder.method(data.getMethod().name(), requestBody);
             request = builder.build();
         } catch (IllegalArgumentException e) {
             throw new WemeetSdkException(e.getClass().getName() + "-" + e.getMessage());
@@ -169,13 +151,29 @@ public class RequestSender {
             throw new WemeetSdkException(msg);
         }
         if (response.code() != HTTP_RSP_OK) {
-            if (resp != null && resp.getErrorInfo() != null) {
-                BaseResponse.ErrorInfo errorInfo = resp.getErrorInfo();
-                throw new WemeetSdkException(errorInfo.getErrorCode(), errorInfo.getMessage());
-            }
-            String msg = "response code is " + response.code() + ", not 200";
+            String traceId = response.header("X-TC-Trace");
+            validWemeetResp(resp, traceId);
+            String msg = "trace id is " + traceId + ",response code is " + response.code() + ", not 200";
             throw new WemeetSdkException(msg);
         }
         return resp;
+    }
+
+    /**
+     * 校验会议开放平台返回body
+     *
+     * @param response 返回body
+     * @param traceId  返回请求id
+     * @throws WemeetSdkException 会议自定义异常
+     */
+    public static void validWemeetResp(BaseResponse response, String traceId) throws WemeetSdkException {
+        if (response == null) {
+            throw new WemeetSdkException("resp is null");
+        }
+        if (response.getErrorInfo() != null) {
+            BaseResponse.ErrorInfo errorInfo = response.getErrorInfo();
+            throw new WemeetSdkException(errorInfo.getErrorCode(), "trace id is:" + traceId + ",error msg:"
+                    + errorInfo.getMessage());
+        }
     }
 }

@@ -25,11 +25,18 @@ public class BaseResponse {
         @SerializedName("error_code")
         private Integer errorCode;
         /**
+         * 新定义错误码
+         */
+        @Expose
+        @SerializedName("new_error_code")
+        private Integer newErrorCode;
+        /**
          * 错误描述
          */
         @Expose
         @SerializedName("message")
         private String message;
+
 
         public Integer getErrorCode() {
             return errorCode;
@@ -37,6 +44,14 @@ public class BaseResponse {
 
         public void setErrorCode(Integer errorCode) {
             this.errorCode = errorCode;
+        }
+
+        public Integer getNewErrorCode() {
+            return newErrorCode;
+        }
+
+        public void setNewErrorCode(Integer newErrorCode) {
+            this.newErrorCode = newErrorCode;
         }
 
         public String getMessage() {

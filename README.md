@@ -41,7 +41,7 @@
 
 # 示例
 
-以查询实例接口queryMeetingById、修改会议接口updateMeeting为例：
+以创建会议接口为例：
 
 
 ```java
@@ -57,7 +57,32 @@ import QueryMeetingDetailResponse;
 import UpdateMeetingRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+    // 企业内部应用鉴权方式
+    // 1.企业管理员登录腾讯会议官网（https://meeting.tencent.com/），
+    // 单击右上角【用户中心】，在左侧菜单栏中的【企业管理】>【高级】>【restApi】中进行查看。
+    // 2.支持两种方式实例化请求代理对象
+    //  1）全局代理对象：设置全局HttpProfile，在项目启动时进行初始化，并构造RequestSender对象，所有客户端请求可共用一套配置；
+    //  2）局部代理对象：也可以针对具体某个接口单独实例化HttpProfile，并通过此对象构造RequestSender对象
+    // 3.构造具体client，参考client包，例如MeetingClient，通过构造方法传入RequestSender实例，初始化client
+    // 4.通过client调用具体方法即可发起请求，
+    // eg：QueryMeetingDetailResponse response = client.createMeeting(request);
 
+    // 第三方应用鉴权（OAuth2.0）
+    // 1.参考官网文档（https://cloud.tencent.com/document/product/1095/51257）获取AccessToken和OpenId
+    // 2.参考【企业内部应用鉴权方式】第2步，初始化代理实例
+    // 3.构造请求体，并添加第1部申请到的参数到请求Header中
+    // eg:
+    //        CreateMeetingRequest request = new CreateMeetingRequest();
+    //        request.setUserId("test_user");
+    //        request.setInstanceId(InstanceEnum.INSTANCE_MAC.getInstanceID());
+    //        request.setSubject("sdk 创建会议");
+    //        request.setType(0);
+    //        request.setStartTime("1619733600");
+    //        request.setEndTime("1619737200");
+    //        // 设置Header
+    //        request.addHeader(ReqHeaderConstants.ACCESS_TOKEN, "111111");
+    //        request.addHeader(ReqHeaderConstants.OPEN_ID, "2222");
+    // 4.通过client发起请求
 public class MeetingRequest {
     private static final Log log = LogFactory.getLog(MeetingRequest.class);
 
@@ -101,59 +126,20 @@ public class MeetingRequest {
     }
 
     public static void main(String[] args) throws WemeetSdkException {
-        // 根据会议ID查询会议
-        QueryMeetingDetailResponse response = queryMeetingById("12224214", "test",
-                InstanceEnum.INSTANCE_MAC.getInstanceID() + "");
-        // 修改会议
-        UpdateMeetingRequest request = new UpdateMeetingRequest();
-        request.setUserId("test");
+        CreateMeetingRequest request = new CreateMeetingRequest();
+        request.setUserId("test_user");
         request.setInstanceId(InstanceEnum.INSTANCE_MAC.getInstanceID());
-        request.setSubject("修改会议");
-        QueryMeetingDetailResponse upResp = updateMeeting(request, "1232515");
-    }
-
-    // queryMeetingById 根据会议ID查询会议
-    public QueryMeetingDetailResponse queryMeetingById(String meetingId, String userId, String instanceId) throws WemeetSdkException {
-        // 2.构建Request请求data
-        TerminalData data = new TerminalData();
-        // 请求路径
-        data.setUri("/v1/meetings/" + meetingId);
-        // 请求参数 url路径？后的参数
-        data.addParams("userid", userId);
-        data.addParams("instanceid", instanceId);
-        // 请求方式 GET/POST/DELETE/PUT...
-        data.setMethod("GET");
-        // 企业内部应用鉴权方式，只需要设置三个header即可
-        // appId
-        data.addHeader("AppId", PROFILE.getAppId());
-        // sdkId
-        data.addHeader("SdkId", PROFILE.getSdkId());
-        // 是否注册用户
-        data.addHeader("X-TC-Registered", "1");
-        // 3.构建调用对象
-        RequestSender sender = new RequestSender(PROFILE);
-        // 4.发起调用
-        QueryMeetingDetailResponse response = sender.get(data, new TypeToken<QueryMeetingDetailResponse>() {
-        });
-        // 5.获取返回结果，处理
+        request.setSubject("sdk 创建会议");
+        request.setType(0);
+        // OAuth2.0鉴权方式，PROFILE对象不用设置sdkId、appId、secretID、secretKey
+        // request.addHeader(ReqHeaderConstants.ACCESS_TOKEN, "111111");
+        // request.addHeader(ReqHeaderConstants.OPEN_ID, "2222");
+        request.setStartTime("1619733600");
+        request.setEndTime("1619737200");
+        
+        MeetingClient client = new MeetingClient(DEFAULT_SENDER);
+        QueryMeetingDetailResponse response = client.createMeeting(request);
         log.info(GSON.toJson(response));
-        return response;
-    }
-
-    // updateMeeting 修改会议
-    public QueryMeetingDetailResponse updateMeeting(UpdateMeetingRequest request, String meetingId) throws WemeetSdkException {
-        TerminalData data = new TerminalData();
-        data.setUri("/v1/meetings/" + meetingId);
-        data.setBody(request);
-        data.setMethod("PUT");
-        data.addHeader("AppId", PROFILE.getAppId());
-        data.addHeader("SdkId", PROFILE.getSdkId());
-        data.addHeader("X-TC-Registered", "1");
-
-        QueryMeetingDetailResponse response = DEFAULT_SENDER.request(data, new TypeToken<QueryMeetingDetailResponse>() {
-        }, MediaType.parse("Content-Type: application/json"));
-        log.info(GSON.toJson(response));
-        return response;
     }
 }
 ```
