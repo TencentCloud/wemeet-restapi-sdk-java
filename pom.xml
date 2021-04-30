@@ -143,6 +143,18 @@
             <comments>tencent wemeetrestapi java sdk</comments>
         </license>
     </licenses>
+    <scm>
+        <connection>scm:git:https://github.com/TencentCloud/wemeet-restapi-sdk-java.git</connection>
+        <developerConnection>scm:git:https://github.com/TencentCloud/wemeet-restapi-sdk-java.git</developerConnection>
+        <url>https://github.com/TencentCloud/wemeet-restapi-sdk-java</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>tencentcloudapi</id>
+            <name>tencentcloudapi</name>
+            <email>tencentcloudapi@tencent.com</email>
+        </developer>
+    </developers>
     <distributionManagement>
         <repository>
             <id>Releases</id>
