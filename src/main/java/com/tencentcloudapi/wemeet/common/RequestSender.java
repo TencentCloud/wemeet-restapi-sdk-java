@@ -65,7 +65,9 @@ public class RequestSender {
             String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
             data.addHeader(ReqHeaderConstants.NONCE, nonce);
             data.addHeader(ReqHeaderConstants.TIMESTAMP, timestamp);
-            data.addHeader(ReqHeaderConstants.REGISTERED, "1");
+            if (!data.getHeaders().containsKey(ReqHeaderConstants.REGISTERED)) {
+                data.addHeader(ReqHeaderConstants.REGISTERED, "1");
+            }
             if (data.getHeaders() != null && data.getHeaders().containsKey(ReqHeaderConstants.ACCESS_TOKEN)
                     && data.getHeaders().containsKey(ReqHeaderConstants.OPEN_ID)) {
                 // OAuth2.0鉴权

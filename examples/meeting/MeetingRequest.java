@@ -74,7 +74,7 @@ public class MeetingRequest {
         profile.setSecretId("SecretId");
         // 申请的安全凭证密钥对中的 Secretkey，用户签名计算
         profile.setSecretKey("SecretKey");
-        // 是否开启请求日志
+        // 是否开启请求日志，开启后会打印请求和返回的详细日志
         profile.setDebug(true);
         // 设置请求超时时间，单位s
         profile.setReadTimeout(3);
@@ -83,11 +83,11 @@ public class MeetingRequest {
 
         // 初始化全局sender，也可以方法级别实例化
         RequestSender sender = new RequestSender(profile);
-        // 自定义拦截器，eg：打印日志
+        // 自定义拦截器，可以忽略
         sender.addInterceptors(new Interceptor() {
             @Override
             public Response intercept(Chain chain) {
-                return null;
+                // TODO return null; 用户自定义实现
             }
         });
         // 实例化client
@@ -107,6 +107,8 @@ public class MeetingRequest {
         // request.addHeader(ReqHeaderConstants.OPEN_ID, "2222");
         request.setStartTime("1619733600");
         request.setEndTime("1619737200");
+        // 非注册用户设置
+        // request.addHeader(ReqHeaderConstants.REGISTERED, "0");
 
         QueryMeetingDetailResponse response = MEETING_CLIENT.createMeeting(request);
         log.info(GSON.toJson(response));
