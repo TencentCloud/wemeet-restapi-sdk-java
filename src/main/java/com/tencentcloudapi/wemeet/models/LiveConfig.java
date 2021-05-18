@@ -53,6 +53,12 @@ public class LiveConfig {
     @SerializedName("enable_live_replay")
     private Boolean enableLiveReplay;
     /**
+     * 直播观看地址
+     */
+    @Expose
+    @SerializedName("live_addr")
+    private String liveAddr;
+    /**
      * 直播水印对象信息
      */
     @Expose
@@ -127,6 +133,14 @@ public class LiveConfig {
 
     public void setEnableLiveReplay(Boolean enableLiveReplay) {
         this.enableLiveReplay = enableLiveReplay;
+    }
+
+    public String getLiveAddr() {
+        return liveAddr;
+    }
+
+    public void setLiveAddr(String liveAddr) {
+        this.liveAddr = liveAddr;
     }
 
     public LiveWatermark getLiveWatermark() {
