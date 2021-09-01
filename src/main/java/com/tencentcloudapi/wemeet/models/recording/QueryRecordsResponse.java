@@ -45,7 +45,7 @@ public class QueryRecordsResponse extends BaseResponse {
         private String hostUserId;
         @Expose
         @SerializedName("media_start_time")
-        private Integer mediaStartTime;
+        private Long mediaStartTime;
         @Expose
         @SerializedName("subject")
         private String subject;
@@ -88,11 +88,11 @@ public class QueryRecordsResponse extends BaseResponse {
             this.hostUserId = hostUserId;
         }
 
-        public Integer getMediaStartTime() {
+        public Long getMediaStartTime() {
             return mediaStartTime;
         }
 
-        public void setMediaStartTime(Integer mediaStartTime) {
+        public void setMediaStartTime(Long mediaStartTime) {
             this.mediaStartTime = mediaStartTime;
         }
 

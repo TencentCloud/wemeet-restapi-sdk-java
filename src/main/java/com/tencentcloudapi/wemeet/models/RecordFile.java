@@ -21,13 +21,13 @@ public class RecordFile {
      */
     @Expose
     @SerializedName("record_start_time")
-    private Integer recordStartTime;
+    private Long recordStartTime;
     /**
      * 结束录制时间，UNIX 时间戳（单位毫秒）
      */
     @Expose
     @SerializedName("record_end_time")
-    private Integer recordEndTime;
+    private Long recordEndTime;
     /**
      * 文件大小（单位字节）
      */
@@ -72,7 +72,7 @@ public class RecordFile {
      */
     @Expose
     @SerializedName("sharing_expire")
-    private Integer sharingExpire;
+    private Long sharingExpire;
     /**
      * 是否允许下载，开启共享时返回
      */
@@ -88,19 +88,19 @@ public class RecordFile {
         this.recordFileId = recordFileId;
     }
 
-    public Integer getRecordStartTime() {
+    public Long getRecordStartTime() {
         return recordStartTime;
     }
 
-    public void setRecordStartTime(Integer recordStartTime) {
+    public void setRecordStartTime(Long recordStartTime) {
         this.recordStartTime = recordStartTime;
     }
 
-    public Integer getRecordEndTime() {
+    public Long getRecordEndTime() {
         return recordEndTime;
     }
 
-    public void setRecordEndTime(Integer recordEndTime) {
+    public void setRecordEndTime(Long recordEndTime) {
         this.recordEndTime = recordEndTime;
     }
 
@@ -152,11 +152,11 @@ public class RecordFile {
         this.password = password;
     }
 
-    public Integer getSharingExpire() {
+    public Long getSharingExpire() {
         return sharingExpire;
     }
 
-    public void setSharingExpire(Integer sharingExpire) {
+    public void setSharingExpire(Long sharingExpire) {
         this.sharingExpire = sharingExpire;
     }
 
