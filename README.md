@@ -210,6 +210,10 @@ Log logger = LogFactory.getLog("TestLog");
 logger.info("hello world");
 ```
 
+
+注：近期log4j2被爆出JNDI注入漏洞，影响较大，详情可见https://cloud.tencent.com/announce/detail/1692
+在使用腾讯会议SDK，如用到日志接口，请注意规避使用该漏洞版本组件。
+
 # 其他问题
 
 ## 版本升级
